@@ -1,5 +1,5 @@
 import express from "express";
-import { programs } from "./data";
+import { getAllPrograms, getProgramById } from "./programRepository";
 
 const app = express();
 const PORT = 3000; // sillä se on node.js:n ja expressin oletusportti
@@ -12,13 +12,13 @@ app.get("/api/health", (request, response) => {
 });
 
 app.get("/api/programs", (request, response) => {
-    response.json(programs);
+    response.json(getAllPrograms());
 });
 
 // Yksi ohjelma id:n perusteella, esim. /api/programs/2
 app.get("/api/programs/:id", (request, response) => {
   const id = Number(request.params.id); // URL:n id on tekstiä, muutetaan numeroksi
-  const program = programs.find((p) => p.id === id); // etsitään ohjelma, jolla sama id
+  const program = getProgramById(id); // haetaan ohjelma tietokannasta
 
   if (!program) {
     // Ohjelmaa ei löytynyt → 404 Not Found

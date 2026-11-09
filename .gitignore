@@ -5,3 +5,8 @@ dist/
 *.tsbuildinfo
 .DS_Store
 .git-old-backup
+# SQLite-tietokanta
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
