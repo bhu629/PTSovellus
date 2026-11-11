@@ -19,3 +19,13 @@ export type Program = {
     daysPerWeek: number;
     days: WorkoutDay[]; // lista treenipäiviä
 };
+
+// Yksi kirjattu sarja
+export type LogEntry = {
+    id: number;
+    exerciseId: number;
+    exerciseName: string;
+    weight: number | null; // null = koska voi olla kehonpainoliike
+    reps: number;
+    createdAt: string; // muotoa "2026-11-11 18:30:00"
+};
