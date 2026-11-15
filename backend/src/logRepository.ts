@@ -1,5 +1,5 @@
 // Kirjausten haku ja tallennus tietokantaan
-// Yksi kirjaus = yksi sarja (liike, paino ja toistot)
+// Yksi kirjaus = liike, sarjat, toistot, paino ja kommentti
 import { db } from "./db";
 import { LogEntry } from "./types";
 
@@ -8,8 +8,10 @@ type LogRow = {
   id: number;
   exercise_id: number;
   exercise_name: string;
+  sets: number;
   weight: number | null;
   reps: number;
+  comment: string | null;
   created_at: string;
 };
 
@@ -19,8 +21,10 @@ function rowToLog(row: LogRow): LogEntry {
     id: row.id,
     exerciseId: row.exercise_id,
     exerciseName: row.exercise_name,
+    sets: row.sets,
     weight: row.weight,
     reps: row.reps,
+    comment: row.comment,
     createdAt: row.created_at,
   };
 }
@@ -30,7 +34,7 @@ function rowToLog(row: LogRow): LogEntry {
 export function getLogs(userId: number, search: string): LogEntry[] {
   const rows = db
     .prepare(
-      `SELECT logs.id, logs.exercise_id, exercises.name AS exercise_name, logs.weight, logs.reps, logs.created_at
+      `SELECT logs.id, logs.exercise_id, exercises.name AS exercise_name, logs.sets, logs.weight, logs.reps, logs.comment, logs.created_at
        FROM logs
        JOIN exercises ON exercises.id = logs.exercise_id
        WHERE logs.user_id = ? AND logs.created_at LIKE ?
@@ -44,7 +48,7 @@ export function getLogs(userId: number, search: string): LogEntry[] {
 export function getLogById(userId: number, logId: number): LogEntry | undefined {
   const row = db
     .prepare(
-      `SELECT logs.id, logs.exercise_id, exercises.name AS exercise_name, logs.weight, logs.reps, logs.created_at
+      `SELECT logs.id, logs.exercise_id, exercises.name AS exercise_name, logs.sets, logs.weight, logs.reps, logs.comment, logs.created_at
        FROM logs
        JOIN exercises ON exercises.id = logs.exercise_id
        WHERE logs.user_id = ? AND logs.id = ?`
@@ -55,26 +59,41 @@ export function getLogById(userId: number, logId: number): LogEntry | undefined 
   return rowToLog(row);
 }
 
-// date on päivä, jolle sarja kirjataan, esim. "2026-11-10". Jos sitä ei ole, käytetään tätä päivää.
-export function addLog(userId: number, exerciseId: number, weight: number | null, reps: number, date: string | null): LogEntry {
+// date on päivä, jolle kirjaus tehdään, esim. "2026-11-10". Jos sitä ei ole, käytetään tätä päivää.
+export function addLog(
+  userId: number,
+  exerciseId: number,
+  sets: number,
+  weight: number | null,
+  reps: number,
+  comment: string | null,
+  date: string | null
+): LogEntry {
   // created_at = päivä + nykyinen kellonaika, esim. "2026-11-10 18:30:00"
   // COALESCE valitsee ensimmäisen arvon, joka ei ole null
   // localtime, jotta myöhään illalla tehty treeni ei mene seuraavalle päivälle
   const result = db
     .prepare(
-      `INSERT INTO logs (user_id, exercise_id, weight, reps, created_at)
-       VALUES (?, ?, ?, ?, COALESCE(?, date('now', 'localtime')) || ' ' || time('now', 'localtime'))`
+      `INSERT INTO logs (user_id, exercise_id, sets, weight, reps, comment, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, date('now', 'localtime')) || ' ' || time('now', 'localtime'))`
     )
-    .run(userId, exerciseId, weight, reps, date);
+    .run(userId, exerciseId, sets, weight, reps, comment, date);
 
   return getLogById(userId, Number(result.lastInsertRowid))!;
 }
 
 // Palauttaa false, jos kirjausta ei löytynyt
-export function updateLog(userId: number, logId: number, weight: number | null, reps: number): boolean {
+export function updateLog(
+  userId: number,
+  logId: number,
+  sets: number,
+  weight: number | null,
+  reps: number,
+  comment: string | null
+): boolean {
   const result = db
-    .prepare("UPDATE logs SET weight = ?, reps = ? WHERE id = ? AND user_id = ?")
-    .run(weight, reps, logId, userId);
+    .prepare("UPDATE logs SET sets = ?, weight = ?, reps = ?, comment = ? WHERE id = ? AND user_id = ?")
+    .run(sets, weight, reps, comment, logId, userId);
 
   return result.changes > 0;
 }

@@ -20,12 +20,14 @@ export type Program = {
     days: WorkoutDay[]; // lista treenipäiviä
 };
 
-// Yksi kirjattu sarja
+// Yksi kirjaus, esim. 3 sarjaa x 8 toistoa 80 kg:lla
 export type LogEntry = {
     id: number;
     exerciseId: number;
     exerciseName: string;
+    sets: number;
     weight: number | null; // null = koska voi olla kehonpainoliike
     reps: number;
+    comment: string | null; // vapaaehtoinen kommentti
     createdAt: string; // muotoa "2026-11-11 18:30:00"
 };

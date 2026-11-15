@@ -10,3 +10,7 @@ dist/
 *.db-journal
 *.db-wal
 *.db-shm
+
+mobile/.env
+
+backend/ptapp.db

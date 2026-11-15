@@ -42,11 +42,24 @@ db.exec(`
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     exercise_id INTEGER NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+    sets        INTEGER NOT NULL DEFAULT 1,
     weight      REAL,
     reps        INTEGER NOT NULL,
+    comment     TEXT,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
+
+// Vanhasta tietokannasta voi puuttua myöhemmin lisättyjä sarakkeita, joten lisätään ne tarvittaessa.
+const logColumns = db.prepare("PRAGMA table_info(logs)").all() as { name: string }[];
+const columnNames = logColumns.map((column) => column.name);
+
+if (!columnNames.includes("sets")) {
+  db.exec("ALTER TABLE logs ADD COLUMN sets INTEGER NOT NULL DEFAULT 1"); // vanhat kirjaukset saavat arvon 1
+}
+if (!columnNames.includes("comment")) {
+  db.exec("ALTER TABLE logs ADD COLUMN comment TEXT"); // vanhoilla kirjauksilla ei ole kommenttia (null)
+}
 
 // Testikäyttäjä, jota käytetään kunnes kirjautuminen on tehty
 export const TEST_USER_ID = 1;

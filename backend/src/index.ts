@@ -46,14 +46,22 @@ app.get("/api/logs", (request, response) => {
   response.json(getLogs(TEST_USER_ID, search));
 });
 
-// Uusi kirjaus eli yksi sarja, esim. { "exerciseId": 1, "weight": 80, "reps": 8, "date": "2026-11-10" }
+// Uusi kirjaus, esim. { "exerciseId": 1, "sets": 3, "reps": 8, "weight": 80, "comment": "kevyt päivä", "date": "2026-11-10" }
 app.post("/api/logs", (request, response) => {
   const exerciseId = Number(request.body.exerciseId);
+  const sets = Number(request.body.sets);
   const reps = Number(request.body.reps);
   // paino saa puuttua (kehonpainoliikkeet)
   const weight = request.body.weight == null ? null : Number(request.body.weight);
+  // kommentti saa puuttua, tyhjä kommentti tallennetaan null-arvona
+  const comment = request.body.comment ? String(request.body.comment) : null;
   // päivä saa puuttua, silloin käytetään tätä päivää
   const date = request.body.date == null ? null : String(request.body.date);
+
+  if (!sets || sets < 1) {
+    response.status(400).json({ error: "Sarjat puuttuu" });
+    return;
+  }
 
   if (!reps || reps < 1) {
     response.status(400).json({ error: "Toistot puuttuu" });
@@ -67,7 +75,7 @@ app.post("/api/logs", (request, response) => {
   }
 
   try {
-    const log = addLog(TEST_USER_ID, exerciseId, weight, reps, date);
+    const log = addLog(TEST_USER_ID, exerciseId, sets, weight, reps, comment, date);
     response.status(201).json(log); // 201 Created
   } catch (error) {
     // esim. liikettä ei ole olemassa (viiteavain ei täsmää)
@@ -75,18 +83,25 @@ app.post("/api/logs", (request, response) => {
   }
 });
 
-// Kirjauksen muokkaus, esim. { "weight": 82.5, "reps": 6 }
+// Kirjauksen muokkaus, esim. { "sets": 4, "reps": 6, "weight": 82.5, "comment": "raskas" }
 app.put("/api/logs/:id", (request, response) => {
   const id = Number(request.params.id);
+  const sets = Number(request.body.sets);
   const reps = Number(request.body.reps);
   const weight = request.body.weight == null ? null : Number(request.body.weight);
+  const comment = request.body.comment ? String(request.body.comment) : null;
+
+  if (!sets || sets < 1) {
+    response.status(400).json({ error: "Sarjat puuttuu" });
+    return;
+  }
 
   if (!reps || reps < 1) {
     response.status(400).json({ error: "Toistot puuttuu" });
     return;
   }
 
-  const updated = updateLog(TEST_USER_ID, id, weight, reps);
+  const updated = updateLog(TEST_USER_ID, id, sets, weight, reps, comment);
   if (!updated) {
     response.status(404).json({ error: "Kirjausta ei löytynyt" });
     return;
