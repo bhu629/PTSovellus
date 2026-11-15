@@ -18,7 +18,7 @@ export default function ProgramScreen() {
         const response = await fetch(`${API_URL}/api/programs/${id}`);
         const data = await response.json();
         setProgram(data);
-      } catch (e) {
+      } catch {
         setError("Ohjelman haku epäonnistui");
       }
     }

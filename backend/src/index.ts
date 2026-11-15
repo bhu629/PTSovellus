@@ -77,7 +77,7 @@ app.post("/api/logs", (request, response) => {
   try {
     const log = addLog(TEST_USER_ID, exerciseId, sets, weight, reps, comment, date);
     response.status(201).json(log); // 201 Created
-  } catch (error) {
+  } catch {
     // esim. liikettä ei ole olemassa (viiteavain ei täsmää)
     response.status(400).json({ error: "Kirjauksen tallennus epäonnistui" });
   }

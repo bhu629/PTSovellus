@@ -18,16 +18,16 @@ export default function CalendarScreen() {
 
   // Haetaan kuukauden kirjaukset, kun välilehti avataan tai kuukausi vaihtuu
   useEffect(() => {
+    async function fetchLogs() {
+      const response = await fetch(`${API_URL}/api/logs?month=${month}`);
+      const data = await response.json();
+      setLogs(data);
+    }
+
     if (isFocused) {
       fetchLogs();
     }
   }, [isFocused, month]);
-
-  async function fetchLogs() {
-    const response = await fetch(`${API_URL}/api/logs?month=${month}`);
-    const data = await response.json();
-    setLogs(data);
-  }
 
   // Merkitään kalenteriin päivät, joilla on treenattu
   const markedDates: any = {};

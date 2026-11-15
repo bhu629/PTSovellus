@@ -22,19 +22,22 @@ export default function LogScreen() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const isFocused = useIsFocused(); // true, kun tämä näkymä on näkyvissä
 
-  // Haetaan kirjaukset kun näkymä tulee näkyviin (myös kun palataan muokkauksesta) tai päivä vaihtuu
+  const [refreshKey, setRefreshKey] = useState(0); // kasvatetaan, kun lista pitää hakea uudelleen
+
+  // Haetaan kirjaukset kun näkymä tulee näkyviin (myös kun palataan muokkauksesta),
+  // päivä vaihtuu tai uusi kirjaus on tallennettu
   useEffect(() => {
+    // Haetaan valitun päivän kirjaukset ja otetaan mukaan vain tämän liikkeen kirjaukset
+    async function fetchLogs() {
+      const response = await fetch(`${API_URL}/api/logs?date=${date}`);
+      const data: LogEntry[] = await response.json();
+      setLogs(data.filter((log) => log.exerciseId === Number(exerciseId)));
+    }
+
     if (isFocused) {
       fetchLogs();
     }
-  }, [isFocused, date]);
-
-  // Haetaan valitun päivän kirjaukset ja otetaan mukaan vain tämän liikkeen kirjaukset
-  async function fetchLogs() {
-    const response = await fetch(`${API_URL}/api/logs?date=${date}`);
-    const data: LogEntry[] = await response.json();
-    setLogs(data.filter((log) => log.exerciseId === Number(exerciseId)));
-  }
+  }, [isFocused, date, exerciseId, refreshKey]);
 
   async function saveLog() {
     if (sets === "" || reps === "") {
@@ -60,7 +63,7 @@ export default function LogScreen() {
     setSets("");
     setReps("");
     setComment("");
-    fetchLogs();
+    setRefreshKey((key) => key + 1); // käynnistää yllä olevan useEffectin uudelleen
   }
 
   return (

@@ -18,7 +18,7 @@ export default function Index() {
         const response = await fetch(`${API_URL}/api/programs`);
         const data = await response.json();
         setPrograms(data); // tallennetaan data stateen
-      } catch (e) {
+      } catch {
         setError("Ohjelmien haku epäonnistui");
       } finally {
         setLoading(false);
