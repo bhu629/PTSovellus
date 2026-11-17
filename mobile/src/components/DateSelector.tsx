@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Calendar } from "react-native-calendars";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { addDays, getToday, toFinnishDate } from "@/date";
 import { calendarTheme, colors } from "@/theme";
 
@@ -18,11 +19,12 @@ export default function DateSelector({ date, onChange }: Props) {
     <View>
       <View style={styles.row}>
         <Pressable style={styles.arrow} onPress={() => onChange(addDays(date, -1))}>
-          <Text style={styles.arrowText}>◀</Text>
+          <Ionicons name="chevron-back" size={18} color={colors.primary} />
         </Pressable>
 
-        <Pressable onPress={() => setShowCalendar(!showCalendar)}>
-          <Text style={styles.date}>{isToday ? "Tänään" : toFinnishDate(date)} 📅</Text>
+        <Pressable style={styles.dateButton} onPress={() => setShowCalendar(!showCalendar)}>
+          <Text style={styles.date}>{isToday ? "Tänään" : toFinnishDate(date)}</Text>
+          <Ionicons name="calendar-outline" size={18} color={colors.primary} />
         </Pressable>
 
         {/* tulevaisuuteen ei voi kirjata, joten nappi on pois käytöstä tänään */}
@@ -31,7 +33,7 @@ export default function DateSelector({ date, onChange }: Props) {
           onPress={() => onChange(addDays(date, 1))}
           disabled={isToday}
         >
-          <Text style={styles.arrowText}>▶</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
         </Pressable>
       </View>
 
@@ -69,9 +71,10 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.3,
   },
-  arrowText: {
-    color: colors.primary,
-    fontSize: 16,
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   date: {
     color: colors.text,

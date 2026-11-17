@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { colors } from "@/theme";
 
 export default function TabsLayout() {
@@ -16,11 +16,15 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{ title: "Treeniohjelmat", tabBarIcon: () => <Text>🏋️</Text> }}
+        options={{ title: "Treeniohjelmat", tabBarIcon: ({ color, size }) => <Ionicons name="barbell-outline" color={color} size={size} /> }}
       />
       <Tabs.Screen
         name="calendar"
-        options={{ title: "Kalenteri", tabBarIcon: () => <Text>📅</Text> }}
+        options={{ title: "Kalenteri", tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" color={color} size={size} /> }}
+      />
+      <Tabs.Screen
+        name="tips"
+        options={{ title: "Vinkit", tabBarIcon: ({ color, size }) => <Ionicons name="bulb-outline" color={color} size={size} /> }}
       />
     </Tabs>
   );

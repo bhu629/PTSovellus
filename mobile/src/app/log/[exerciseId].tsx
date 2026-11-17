@@ -8,6 +8,7 @@ import { colors, commonStyles } from "@/theme";
 import AppButton from "@/components/AppButton";
 import DateSelector from "@/components/DateSelector";
 import LogRow from "@/components/LogRow";
+import RestTimer from "@/components/RestTimer";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -107,6 +108,8 @@ export default function LogScreen() {
         multiline // kommentti voi olla usean rivin mittainen
       />
       <AppButton title="Tallenna" onPress={saveLog} />
+
+      <RestTimer />
 
       <Text style={commonStyles.subtitle}>Päivän kirjaukset</Text>
       <FlatList
