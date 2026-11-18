@@ -1,6 +1,6 @@
-// Seed-skripti: lisää testikäyttäjän sekä ohjelmat ja liikkeet data.ts:stä tietokantaan.
+// Seed-skripti: lisää ohjelmat ja liikkeet data.ts:stä tietokantaan.
 // Ajo: npm run seed
-import { db, TEST_USER_ID } from "./db";
+import { db } from "./db";
 import { programs } from "./data";
 
 const insertProgram = db.prepare(
@@ -13,10 +13,6 @@ const insertExercise = db.prepare(
 function deleteOldPrograms() {
   // Poistaa myös ohjelmien liikkeet (ON DELETE CASCADE)
   db.prepare("DELETE FROM programs").run();
-}
-
-function insertTestUser() {
-  db.prepare("INSERT OR IGNORE INTO users (id, username) VALUES (?, ?)").run(TEST_USER_ID, "testikayttaja");
 }
 
 function insertPrograms() {
@@ -34,7 +30,6 @@ function insertPrograms() {
 // Transaktio: joko kaikki onnistuu tai mitään ei muuteta
 const seedDatabase = db.transaction(() => {
   deleteOldPrograms();
-  insertTestUser();
   insertPrograms();
 });
 

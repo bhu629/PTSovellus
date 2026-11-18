@@ -11,9 +11,20 @@ db.pragma("foreign_keys = ON");
 
 // Luodaan taulut, jos niitä ei vielä ole
 db.exec(`
+  -- Salasanasta tallennetaan vain bcrypt-tiiviste, ei koskaan itse salasanaa
   CREATE TABLE IF NOT EXISTS users (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    username   TEXT NOT NULL UNIQUE,
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT NOT NULL,
+    email         TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Kirjautumiset: jokainen kirjautuminen saa oman satunnaisen tokenin.
+  -- Uloskirjautuessa rivi poistetaan, jolloin token ei enää kelpaa.
+  CREATE TABLE IF NOT EXISTS sessions (
+    token      TEXT PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -37,7 +48,7 @@ db.exec(`
     reps       TEXT NOT NULL
   );
 
-  -- Kirjaukset: user_id mukana heti alusta, jotta kirjautuminen on helppo lisätä myöhemmin
+  -- Kirjaukset: user_id kertoo kenen kirjaus on. Käyttäjä näkee vain omansa.
   CREATE TABLE IF NOT EXISTS logs (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -60,6 +71,3 @@ if (!columnNames.includes("sets")) {
 if (!columnNames.includes("comment")) {
   db.exec("ALTER TABLE logs ADD COLUMN comment TEXT"); // vanhoilla kirjauksilla ei ole kommenttia (null)
 }
-
-// Testikäyttäjä, jota käytetään kunnes kirjautuminen on tehty
-export const TEST_USER_ID = 1;
