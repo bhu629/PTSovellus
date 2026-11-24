@@ -4,12 +4,20 @@ PTApp on mobiilisovellus. Sillä voi seurata omia kuntosalitreenejä. Käyttäj�
 
 ## Käytetyt teknologiat
 
-- **React Native** on kirjasto, jolla tehdään mobiilisovelluksia JavaScriptillä tai TypeScriptillä. Samalla koodilla sovellus toimii sekä Androidilla että iPhonella.
-- **Expo** on työkalu React Nativeen. Sen avulla sovelluksen voi testata puhelimessa Expo Go -sovelluksella. Expossa on myös valmiita osia puhelimen ominaisuuksiin, esimerkiksi värinä ja turvallinen tallennus.
-- **Expo Router** hoitaa navigoinnin. Jokainen tiedosto `app/`-kansiossa on oma sivu.
-- **TypeScript** on JavaScript, jossa on tyypit. Se löytää virheitä jo ennen kuin sovellus käynnistyy. Sitä käytetään sekä mobiilissa että backendissa.
-- **Node.js** ajaa JavaScript-koodia tietokoneella. Backend toimii Node.js:n päällä.
-- **Express** on Node.js-kirjasto, jolla tehdään REST-rajapinta. Mobiili lähettää HTTP-pyyntöjä, ja Express vastaa JSON-muodossa.
-- **SQLite** on tietokanta, joka on yksi tiedosto (`ptapp.db`). Erillistä tietokantapalvelinta ei tarvita, joten se sopii hyvin pieneen projektiin.
-- **bcrypt** tekee salasanasta tiivisteen (hash). Tietokantaan ei tallenneta oikeaa salasanaa.
-- **ESLint** tarkistaa koodin ja varoittaa virheistä ja huonoista tavoista.
+| Teknologia | Kuvaus |
+| --- | --- |
+| React Native | Kirjasto, jolla tehdään mobiilisovelluksia JavaScriptillä tai TypeScriptillä. Samalla koodilla sovellus toimii sekä Androidilla että iPhonella. |
+| Expo | Työkalu React Nativeen. Sen avulla sovelluksen voi testata puhelimessa tai emulaattorissa Expo Go -sovelluksella. Expossa on myös valmiita osia puhelimen ominaisuuksiin, esimerkiksi värinä ja näytön pitäminen päällä. |
+| Expo Router | Hoitaa navigoinnin. Jokainen tiedosto `src/app/`-kansiossa on oma sivu. |
+| TypeScript | JavaScript, jossa on tyypit. Löytää virheitä jo ennen kuin sovellus käynnistyy. Käytetään sekä mobiilissa että backendissa. |
+| Node.js | Ajaa JavaScript-koodia tietokoneella. Backend toimii Node.js:n päällä. |
+| Express | Node.js-kirjasto, jolla tehdään REST-rajapinta. Mobiili lähettää HTTP-pyyntöjä, ja Express vastaa JSON-muodossa. |
+| SQLite | Tietokanta, joka on yksi tiedosto (`ptapp.db`). Erillistä tietokantapalvelinta ei tarvita, joten se sopii hyvin pieneen projektiin. |
+| bcrypt | Tekee salasanasta tiivisteen (hash). Tietokantaan ei tallenneta oikeaa salasanaa. |
+| expo-secure-store | Tallentaa kirjautumistokenin puhelimen salattuun muistiin. |
+| react-native-calendars | Näyttää vanhat treenit kalenterissa. |
+| expo-haptics ja Vibration | Antavat puhelimelle värinäpalautteen. |
+| expo-keep-awake | Pitää näytön päällä lepoajastimen aikana. |
+| @expo/vector-icons | Valmiit ikonit sovelluksen näkymiin. |
+| ESLint | Tarkistaa koodin ja varoittaa virheistä ja huonoista tavoista. |
+| Git ja GitHub | Versionhallinta. Backend ja mobiili ovat samassa repossa. |
