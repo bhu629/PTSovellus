@@ -7,10 +7,11 @@ import { calendarTheme, colors } from "@/theme";
 
 type Props = {
   date: string; // valittu päivä, esim. "2026-11-11"
-  onChange: (date: string) => void; // kutsutaan kun päivä vaihtuu
+  onChange: (date: string) => void; // kutsutaan, kun päivä vaihtuu
 };
 
-// Päivän valinta: nuolet edelliseen/seuraavaan päivään, päivämäärää painamalla aukeaa kalenteri
+// Päivän valinta. Nuolilla pääsee edelliseen tai seuraavaan päivään.
+// Kun painaa päivämäärää, kalenteri aukeaa.
 export default function DateSelector({ date, onChange }: Props) {
   const [showCalendar, setShowCalendar] = useState(false);
   const isToday = date === getToday();
@@ -27,7 +28,7 @@ export default function DateSelector({ date, onChange }: Props) {
           <Ionicons name="calendar-outline" size={18} color={colors.primary} />
         </Pressable>
 
-        {/* tulevaisuuteen ei voi kirjata, joten nappi on pois käytöstä tänään */}
+        {/* tulevalle päivälle ei voi kirjata, joten nappi ei toimi, jos valittu päivä on tänään */}
         <Pressable
           style={[styles.arrow, isToday && styles.disabled]}
           onPress={() => onChange(addDays(date, 1))}

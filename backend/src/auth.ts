@@ -1,9 +1,10 @@
-// requireAuth-middleware: päästää pyynnön eteenpäin vain, jos mukana on voimassa oleva token.
-// Mobiili lähettää tokenin otsakkeessa: Authorization: Bearer <token>
+// requireAuth tarkistaa tokenin. Jos token on oikea, pyyntö menee eteenpäin.
+// Mobiili lähettää tokenin näin: Authorization: Bearer <token>
 import { NextFunction, Request, Response } from "express";
 import { getUserIdByToken } from "./userRepository";
 
-// Poimii tokenin otsakkeesta, esim. "Bearer abc123" -> "abc123"
+// Ottaa tokenin pyynnön otsakkeesta (header).
+// Esimerkki: "Bearer abc123" -> "abc123"
 function readToken(request: Request): string | undefined {
   const header = request.headers.authorization;
   if (!header || !header.startsWith("Bearer ")) {
@@ -17,19 +18,19 @@ export function requireAuth(request: Request, response: Response, next: NextFunc
   const userId = token ? getUserIdByToken(token) : undefined;
 
   if (!token || !userId) {
-    // 401 Unauthorized = ei kirjautunut
+    // 401 = käyttäjä ei ole kirjautunut
     response.status(401).json({ error: "Kirjaudu sisään" });
     return;
   }
 
-  // Tallennetaan tiedot, jotta reitit tietävät kenen tietoja käsitellään
+  // Tallennetaan käyttäjän id ja token. Näin reitit tietävät, kuka käyttäjä on.
   response.locals.userId = userId;
   response.locals.token = token;
   next();
 }
 
-// Apufunktiot reiteille. response.locals on tyypiltään any, joten nämä antavat oikeat tyypit.
-// Toimivat vain reiteissä, joissa requireAuth on ajettu ensin.
+// Apufunktiot reiteille. response.locals on tyyppiä any. Nämä funktiot antavat oikean tyypin.
+// Ne toimivat vain, jos requireAuth on ajettu ensin.
 export function getUserId(response: Response): number {
   return response.locals.userId;
 }

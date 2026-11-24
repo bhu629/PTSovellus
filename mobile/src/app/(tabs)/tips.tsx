@@ -4,7 +4,7 @@ import { tipCategories, tipsDisclaimer } from "@/tips";
 import { colors } from "@/theme";
 import TipCard from "@/components/TipCard";
 
-// Vinkit: ravintosuositukset ja vinkit tavoitteen mukaan (pudotus, nousu, ylläpito)
+// Vinkit-sivu: ruokavinkit ja vinkit oman tavoitteen mukaan (painon pudotus, nousu tai ylläpito)
 export default function TipsScreen() {
   const [selectedCategory, setSelectedCategory] = useState(tipCategories[0]);
 

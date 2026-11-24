@@ -5,7 +5,7 @@ import logRoutes from "./routes/logRoutes";
 import programRoutes from "./routes/programRoutes";
 
 const app = express();
-const PORT = 3000; // sillä se on node.js:n ja expressin oletusportti
+const PORT = 3000; 
 
 app.use(express.json());
 

@@ -46,7 +46,7 @@ export function getLogs(userId: number, search: string): LogEntry[] {
   return rows.map(rowToLog);
 }
 
-export function getLogById(userId: number, logId: number): LogEntry | undefined {
+function getLogById(userId: number, logId: number): LogEntry | undefined {
   const row = db
     .prepare(`${SELECT_LOGS} WHERE logs.user_id = ? AND logs.id = ?`)
     .get(userId, logId) as LogRow | undefined;
@@ -55,19 +55,37 @@ export function getLogById(userId: number, logId: number): LogEntry | undefined 
   return rowToLog(row);
 }
 
-// date on päivä, jolle kirjaus tehdään, esim. "2026-11-10". Jos sitä ei ole, käytetään tätä päivää.
+// Lisää nollan eteen, jos numero on alle 10, esim. 5 -> "05"
+function twoDigits(number: number): string {
+  return String(number).padStart(2, "0");
+}
+
+// Tekee kirjauksen ajan, esim. "2026-11-10 18:30:00".
+// date on päivä, jolle kirjaus tehdään. Jos sitä ei ole, käytetään tätä päivää.
+// Kellonaika on aina nykyinen aika.
+function makeCreatedAt(date: string | null): string {
+  const now = new Date();
+  const today = now.getFullYear() + "-" + twoDigits(now.getMonth() + 1) + "-" + twoDigits(now.getDate());
+  const time = twoDigits(now.getHours()) + ":" + twoDigits(now.getMinutes()) + ":" + twoDigits(now.getSeconds());
+
+  if (date === null) {
+    return today + " " + time;
+  }
+  return date + " " + time;
+}
+
 export function addLog(userId: number, exerciseId: number, input: LogInput, date: string | null): LogEntry {
-  // created_at = päivä + nykyinen kellonaika, esim. "2026-11-10 18:30:00"
-  // COALESCE valitsee ensimmäisen arvon, joka ei ole null
-  // localtime, jotta myöhään illalla tehty treeni ei mene seuraavalle päivälle
+  const createdAt = makeCreatedAt(date);
+
   const result = db
     .prepare(
       `INSERT INTO logs (user_id, exercise_id, sets, weight, reps, comment, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, date('now', 'localtime')) || ' ' || time('now', 'localtime'))`
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(userId, exerciseId, input.sets, input.weight, input.reps, input.comment, date);
+    .run(userId, exerciseId, input.sets, input.weight, input.reps, input.comment, createdAt);
 
-  return getLogById(userId, Number(result.lastInsertRowid))!;
+  // haetaan juuri tallennettu kirjaus, jotta se voidaan palauttaa mobiiliin
+  return getLogById(userId, Number(result.lastInsertRowid)) as LogEntry;
 }
 
 // Palauttaa false, jos kirjausta ei löytynyt

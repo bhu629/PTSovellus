@@ -3,8 +3,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 import { router } from "expo-router";
 import { Program } from "@/types";
 import { colors, levelColors } from "@/theme";
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+import { getJson } from "@/api";
 
 // Etusivu: näytetään kaikki treeniohjelmat
 export default function Index() {
@@ -15,9 +14,7 @@ export default function Index() {
   useEffect(() => {
     async function fetchPrograms() {
       try {
-        const response = await fetch(`${API_URL}/api/programs`);
-        const data = await response.json();
-        setPrograms(data); // tallennetaan data stateen
+        setPrograms(await getJson<Program[]>("/api/programs"));
       } catch {
         setError("Ohjelmien haku epäonnistui");
       } finally {
@@ -56,7 +53,7 @@ export default function Index() {
           <Text style={styles.description}>{item.description}</Text>
 
           <View style={styles.infoRow}>
-            {/* tason merkki, väri riippuu tasosta */}
+            {/* ohjelman taso (esim. aloittelija), jokaisella tasolla on oma väri */}
             <Text style={[styles.badge, { backgroundColor: levelColors[item.level] }]}>{item.level}</Text>
             <Text style={styles.days}>{item.daysPerWeek} päivää / vko</Text>
           </View>

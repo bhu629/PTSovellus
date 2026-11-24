@@ -37,7 +37,7 @@ db.exec(`
   );
 
   -- Treenipäivä tallennetaan liikkeen yhteyteen (day_id + day_name),
-  -- jotta pärjätään neljällä taululla.
+  -- jotta treenipäiville ei tarvita omaa taulua.
   CREATE TABLE IF NOT EXISTS exercises (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     program_id INTEGER NOT NULL REFERENCES programs(id) ON DELETE CASCADE,
@@ -60,14 +60,3 @@ db.exec(`
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
-
-// Vanhasta tietokannasta voi puuttua myöhemmin lisättyjä sarakkeita, joten lisätään ne tarvittaessa.
-const logColumns = db.prepare("PRAGMA table_info(logs)").all() as { name: string }[];
-const columnNames = logColumns.map((column) => column.name);
-
-if (!columnNames.includes("sets")) {
-  db.exec("ALTER TABLE logs ADD COLUMN sets INTEGER NOT NULL DEFAULT 1"); // vanhat kirjaukset saavat arvon 1
-}
-if (!columnNames.includes("comment")) {
-  db.exec("ALTER TABLE logs ADD COLUMN comment TEXT"); // vanhoilla kirjauksilla ei ole kommenttia (null)
-}

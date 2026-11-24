@@ -1,16 +1,16 @@
-// Vinkit-sivun sisältö. Teksti on erillään näkymästä, jotta sitä on helppo muokata.
+// Vinkit-sivun tekstit. Ne ovat omassa tiedostossa, jotta niitä on helppo muokata.
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 export type TipSection = {
   title: string;
-  icon: keyof typeof Ionicons.glyphMap; // Ioniconsin nimi, esim. "water-outline"
+  icon: keyof typeof Ionicons.glyphMap; // ikonin nimi Ioniconsissa, esim. "water-outline"
   tips: string[];
 };
 
-export type TipCategory = {
+type TipCategory = {
   key: string;
   label: string; // valintanapin teksti
-  intro: string; // lyhyt johdanto kategorian alkuun
+  intro: string; // lyhyt teksti kategorian alussa
   sections: TipSection[];
 };
 

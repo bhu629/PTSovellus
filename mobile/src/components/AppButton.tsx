@@ -4,10 +4,10 @@ import { colors } from "@/theme";
 type Props = {
   title: string;
   onPress: () => void;
-  color?: string; // oletuksena korostusväri
+  color?: string; // jos väriä ei anneta, käytetään korostusväriä
 };
 
-// Oma nappi, koska React Nativen Button näyttää Androidilla aina samalta eikä sitä voi muotoilla
+// Oma nappi, koska React Nativen omaa Button-nappia ei voi muotoilla Androidilla
 export default function AppButton({ title, onPress, color = colors.primary }: Props) {
   return (
     <Pressable style={[styles.button, { backgroundColor: color }]} onPress={onPress}>

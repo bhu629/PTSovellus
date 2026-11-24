@@ -1,65 +1,72 @@
 import { useEffect, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, Vibration, View } from "react-native";
-import * as Haptics from "expo-haptics";
-import { useKeepAwake } from "expo-keep-awake";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AppButton from "@/components/AppButton";
 import { colors } from "@/theme";
 
-const STEP = 1; // −/+ muuttaa aikaa 1 sekunnin
+const STEP = 1; // − ja + napit muuttavat aikaa 1 sekunnin
 
-// Pitää näytön päällä niin kauan kuin tämä on näkyvissä
-function KeepAwake() {
-  useKeepAwake();
-  return null;
-}
-
-// 90 -> "1:30"
+// Muuttaa sekunnit minuuteiksi, esim. 90 -> "1:30"
 function formatTime(seconds: number) {
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const minutes = Math.floor(seconds / 60);
+  const restSeconds = seconds % 60;
+  if (restSeconds < 10) {
+    return minutes + ":0" + restSeconds;
+  }
+  return minutes + ":" + restSeconds;
 }
 
-// Palautumisajastin: käyttäjä asettaa tauon sekunteina, ja puhelin värisee, kun tauko loppuu
+// Lepoajastin. Käyttäjä valitsee tauon pituuden sekunteina. Puhelin värisee, kun tauko loppuu.
 export default function RestTimer() {
   const [seconds, setSeconds] = useState("90"); // tauon pituus (tekstikentän arvo)
-  const [endTime, setEndTime] = useState<number | null>(null); // milloin tauko loppuu, null = ei käynnissä
-  const [now, setNow] = useState(0); // nykyhetki, päivitetään ajastimen käydessä
+  const [remaining, setRemaining] = useState(0); // jäljellä oleva aika sekunteina
+  const isRunning = remaining > 0; // ajastin on käynnissä, kun aikaa on jäljellä
 
-  // Ajastimen käydessä päivitetään kelloa ja lopetetaan, kun aika on täynnä
+  // Joka sekunti aika vähenee yhdellä.
+  // Kun viimeinen sekunti loppuu, puhelin värisee 1 sekunnin.
   useEffect(() => {
-    if (endTime === null) return;
-    const interval = setInterval(() => {
-      setNow(Date.now());
-      if (Date.now() >= endTime) {
-        setEndTime(null);
-        Vibration.vibrate([0, 400, 200, 400]);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-    }, 250);
-    return () => clearInterval(interval); // pysäytetään, kun ajastin loppuu
-  }, [endTime]);
+    if (remaining <= 0) return;
 
-  function start() {
+    const timeout = setTimeout(() => {
+      if (remaining === 1) {
+        Vibration.vibrate(1000);
+      }
+      setRemaining(remaining - 1);
+    }, 1000);
+
+    // jos käyttäjä painaa Lopeta, odottava sekunti perutaan
+    return () => clearTimeout(timeout);
+  }, [remaining]);
+
+  // Näyttö pysyy päällä niin kauan, kun ajastin on käynnissä
+  useEffect(() => {
+    if (!isRunning) return;
+
+    activateKeepAwakeAsync();
+    return () => {
+      deactivateKeepAwake();
+    };
+  }, [isRunning]);
+
+  function startTimer() {
     Keyboard.dismiss();
-    setNow(Date.now());
-    setEndTime(Date.now() + Number(seconds) * 1000);
+    setRemaining(Number(seconds));
   }
 
-  function change(amount: number) {
+  function changeSeconds(amount: number) {
     setSeconds(String(Math.max(0, Number(seconds) + amount)));
   }
 
-  // Ajastimen käydessä näytetään jäljellä oleva aika ja Lopeta-nappi
-  if (endTime !== null) {
-    const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
+  // Kun ajastin on käynnissä, näytetään jäljellä oleva aika ja Lopeta-nappi
+  if (isRunning) {
     return (
       <View style={styles.card}>
-        <KeepAwake />
         <View style={styles.row}>
           <Ionicons name="timer-outline" size={32} color={colors.primary} />
           <Text style={styles.time}>{formatTime(remaining)}</Text>
         </View>
-        <AppButton title="Lopeta" color={colors.border} onPress={() => setEndTime(null)} />
+        <AppButton title="Lopeta" color={colors.border} onPress={() => setRemaining(0)} />
       </View>
     );
   }
@@ -68,7 +75,7 @@ export default function RestTimer() {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        <Pressable style={styles.adjust} onPress={() => change(-STEP)}>
+        <Pressable style={styles.adjust} onPress={() => changeSeconds(-STEP)}>
           <Text style={styles.adjustText}>−</Text>
         </Pressable>
         <TextInput
@@ -78,11 +85,11 @@ export default function RestTimer() {
           keyboardType="number-pad"
         />
         <Text style={styles.unit}>s</Text>
-        <Pressable style={styles.adjust} onPress={() => change(STEP)}>
+        <Pressable style={styles.adjust} onPress={() => changeSeconds(STEP)}>
           <Text style={styles.adjustText}>+</Text>
         </Pressable>
       </View>
-      <AppButton title="Aloita tauko" onPress={start} />
+      <AppButton title="Aloita tauko" onPress={startTimer} />
     </View>
   );
 }

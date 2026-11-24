@@ -9,10 +9,9 @@ import AppButton from "@/components/AppButton";
 import DateSelector from "@/components/DateSelector";
 import LogRow from "@/components/LogRow";
 import RestTimer from "@/components/RestTimer";
+import { getJson, sendData } from "@/api";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-// Kirjausnäkymä: syötetään sarjat, toistot, paino ja kommentti
+// Kirjaussivu: käyttäjä kirjoittaa sarjat, toistot, painon ja kommentin
 export default function LogScreen() {
   const { exerciseId, name } = useLocalSearchParams<{ exerciseId: string; name: string }>();
   const [sets, setSets] = useState("");
@@ -21,18 +20,25 @@ export default function LogScreen() {
   const [comment, setComment] = useState("");
   const [date, setDate] = useState(getToday()); // päivä, jolle treeni kirjataan
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const isFocused = useIsFocused(); // true, kun tämä näkymä on näkyvissä
+  const [error, setError] = useState<string | null>(null);
+  const isFocused = useIsFocused(); // true, kun tämä sivu on näkyvissä
 
-  const [refreshKey, setRefreshKey] = useState(0); // kasvatetaan, kun lista pitää hakea uudelleen
+  const [refreshKey, setRefreshKey] = useState(0); // numero kasvaa aina tallennuksen jälkeen, ja silloin lista haetaan uudestaan
 
-  // Haetaan kirjaukset kun näkymä tulee näkyviin (myös kun palataan muokkauksesta),
-  // päivä vaihtuu tai uusi kirjaus on tallennettu
+  // Kirjaukset haetaan uudestaan, kun:
+  // - sivu tulee näkyviin (myös kun palataan muokkaussivulta)
+  // - päivä vaihtuu
+  // - uusi kirjaus on tallennettu (refreshKey muuttuu)
   useEffect(() => {
-    // Haetaan valitun päivän kirjaukset ja otetaan mukaan vain tämän liikkeen kirjaukset
+    // Haetaan valitun päivän kaikki kirjaukset. Sitten otetaan vain tämän liikkeen kirjaukset.
     async function fetchLogs() {
-      const response = await fetch(`${API_URL}/api/logs?date=${date}`);
-      const data: LogEntry[] = await response.json();
-      setLogs(data.filter((log) => log.exerciseId === Number(exerciseId)));
+      try {
+        const data = await getJson<LogEntry[]>(`/api/logs?date=${date}`);
+        setLogs(data.filter((log) => log.exerciseId === Number(exerciseId)));
+        setError(null);
+      } catch {
+        setError("Kirjausten haku epäonnistui");
+      }
     }
 
     if (isFocused) {
@@ -46,25 +52,26 @@ export default function LogScreen() {
       return;
     }
 
-    await fetch(`${API_URL}/api/logs`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        exerciseId: Number(exerciseId),
-        sets: Number(sets),
-        weight: weight === "" ? null : Number(weight), // tyhjä paino = kehonpainoliike
-        reps: Number(reps),
-        comment: comment,
-        date: date,
-      }),
+    const saveError = await sendData("/api/logs", "POST", {
+      exerciseId: Number(exerciseId),
+      sets: Number(sets),
+      weight: weight === "" ? null : Number(weight), // tyhjä paino = kehonpainoliike
+      reps: Number(reps),
+      comment,
+      date,
     });
 
-    // värähdys, kun kirjaus on tallennettu
+    if (saveError) {
+      Alert.alert("Tallennus epäonnistui", saveError);
+      return;
+    }
+
+    // puhelin värisee, kun kirjaus on tallennettu
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setSets("");
     setReps("");
     setComment("");
-    setRefreshKey((key) => key + 1); // käynnistää yllä olevan useEffectin uudelleen
+    setRefreshKey((key) => key + 1); // refreshKey muuttuu, joten useEffect hakee listan uudestaan
   }
 
   return (
@@ -75,7 +82,7 @@ export default function LogScreen() {
 
       <View style={styles.form}>
         <TextInput
-          style={commonStyles.input}
+          style={[commonStyles.input, styles.rowInput]}
           placeholder="Sarjat"
           placeholderTextColor={colors.textMuted}
           keyboardType="numeric"
@@ -83,7 +90,7 @@ export default function LogScreen() {
           onChangeText={setSets}
         />
         <TextInput
-          style={commonStyles.input}
+          style={[commonStyles.input, styles.rowInput]}
           placeholder="Toistot"
           placeholderTextColor={colors.textMuted}
           keyboardType="numeric"
@@ -91,7 +98,7 @@ export default function LogScreen() {
           onChangeText={setReps}
         />
         <TextInput
-          style={commonStyles.input}
+          style={[commonStyles.input, styles.rowInput]}
           placeholder="Paino (kg)"
           placeholderTextColor={colors.textMuted}
           keyboardType="numeric"
@@ -105,13 +112,14 @@ export default function LogScreen() {
         placeholderTextColor={colors.textMuted}
         value={comment}
         onChangeText={setComment}
-        multiline // kommentti voi olla usean rivin mittainen
+        multiline
       />
       <AppButton title="Tallenna" onPress={saveLog} />
 
       <RestTimer />
 
       <Text style={commonStyles.subtitle}>Päivän kirjaukset</Text>
+      {error && <Text style={commonStyles.errorText}>{error}</Text>}
       <FlatList
         data={logs}
         keyExtractor={(item) => item.id.toString()}
@@ -125,8 +133,10 @@ export default function LogScreen() {
 
 const styles = StyleSheet.create({
   comment: {
-    flex: 0, 
     marginBottom: 12,
+  },
+  rowInput: {
+    flex: 1, 
   },
   form: {
     flexDirection: "row",

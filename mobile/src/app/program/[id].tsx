@@ -3,8 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { router, useLocalSearchParams } from "expo-router";
 import { Program } from "@/types";
 import { colors } from "@/theme";
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+import { getJson } from "@/api";
 
 // Ohjelman sivu: näytetään treenipäivät ja niiden liikkeet
 export default function ProgramScreen() {
@@ -15,9 +14,7 @@ export default function ProgramScreen() {
   useEffect(() => {
     async function fetchProgram() {
       try {
-        const response = await fetch(`${API_URL}/api/programs/${id}`);
-        const data = await response.json();
-        setProgram(data);
+        setProgram(await getJson<Program>(`/api/programs/${id}`));
       } catch {
         setError("Ohjelman haku epäonnistui");
       }
@@ -51,7 +48,7 @@ export default function ProgramScreen() {
           <Text style={styles.dayName}>{day.name}</Text>
 
           {day.exercises.map((exercise) => (
-            // painamalla liikettä päästään kirjaamaan treeni
+            // kun käyttäjä painaa liikettä, kirjaussivu aukeaa
             <Pressable
               key={exercise.id}
               style={styles.exercise}
@@ -94,7 +91,7 @@ const styles = StyleSheet.create({
   },
   day: {
     marginTop: 24,
-    gap: 8, // väli liikkeiden välissä
+    gap: 8, 
   },
   dayName: {
     color: colors.primary,

@@ -8,7 +8,7 @@ type Props = {
   label: string; // vasemmalla näkyvä teksti, esim. "1." tai liikkeen nimi
 };
 
-// Yksi kirjaus listassa. Painamalla avautuu muokkausnäkymä.
+// Yksi kirjaus listassa. Kun riviä painaa, muokkaussivu aukeaa.
 export default function LogRow({ log, label }: Props) {
   function openEdit() {
     router.push({

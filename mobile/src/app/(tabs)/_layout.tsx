@@ -1,13 +1,23 @@
+import { Pressable, StyleSheet } from "react-native";
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { colors } from "@/theme";
+import { useAuth } from "@/AuthContext";
 
 export default function TabsLayout() {
+  const { logout } = useAuth();
+
   return (
     <Tabs
       screenOptions={{
         headerStyle: { backgroundColor: colors.background },
         headerTintColor: colors.text,
+        // uloskirjautumisnappi jokaisen välilehden oikeaan yläkulmaan
+        headerRight: () => (
+          <Pressable onPress={logout} style={styles.logoutButton} accessibilityLabel="Kirjaudu ulos">
+            <Ionicons name="log-out-outline" size={24} color={colors.text} />
+          </Pressable>
+        ),
         sceneStyle: { backgroundColor: colors.background }, // sivujen tausta
         tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border }, // alapalkki
         tabBarActiveTintColor: colors.primary, // valitun välilehden väri
@@ -29,3 +39,8 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+const styles = StyleSheet.create({
+  logoutButton: {
+    marginRight: 16,
+  },
+});

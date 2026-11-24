@@ -1,27 +1,30 @@
 import { useEffect, useState } from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { useIsFocused } from "expo-router";
 import { Calendar } from "react-native-calendars";
 import { LogEntry } from "@/types";
 import { getToday, toFinnishDate } from "@/date";
 import { calendarTheme, commonStyles } from "@/theme";
 import LogRow from "@/components/LogRow";
+import { getJson } from "@/api";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-// Kalenteri: treenipäivät merkitään pisteellä, päivää painamalla näkyy sen päivän treeni
 export default function CalendarScreen() {
   const [month, setMonth] = useState(getToday().slice(0, 7)); // "2026-11-11" -> "2026-11"
   const [selectedDate, setSelectedDate] = useState(getToday());
   const [logs, setLogs] = useState<LogEntry[]>([]); // koko kuukauden kirjaukset
+  const [error, setError] = useState<string | null>(null);
   const isFocused = useIsFocused(); // true, kun tämä välilehti on näkyvissä
 
   // Haetaan kuukauden kirjaukset, kun välilehti avataan tai kuukausi vaihtuu
   useEffect(() => {
     async function fetchLogs() {
-      const response = await fetch(`${API_URL}/api/logs?month=${month}`);
-      const data = await response.json();
-      setLogs(data);
+      try {
+        setLogs(await getJson<LogEntry[]>(`/api/logs?month=${month}`));
+        setError(null);
+      } catch {
+        setError("Kirjausten haku epäonnistui");
+      }
     }
 
     if (isFocused) {
@@ -30,12 +33,13 @@ export default function CalendarScreen() {
   }, [isFocused, month]);
 
   // Merkitään kalenteriin päivät, joilla on treenattu
-  const markedDates: any = {};
+  const markedDates: Record<string, { marked?: boolean; selected?: boolean }> = {};
   for (const log of logs) {
     const date = log.createdAt.slice(0, 10); // "2026-11-11 18:30:00" -> "2026-11-11"
     markedDates[date] = { marked: true };
   }
-  markedDates[selectedDate] = { selected: true }; // valittu päivä korostetaan
+  // valittu päivä näkyy eri värillä, mutta treenipiste jää näkyviin
+  markedDates[selectedDate] = { ...markedDates[selectedDate], selected: true };
 
   // Valitun päivän kirjaukset
   const dayLogs = logs.filter((log) => log.createdAt.slice(0, 10) === selectedDate);
@@ -43,7 +47,7 @@ export default function CalendarScreen() {
   return (
     <View style={commonStyles.container}>
       <Calendar
-        style={{ borderRadius: 12 }}
+        style={styles.calendar}
         theme={calendarTheme}
         firstDay={1} // viikko alkaa maanantaista
         markedDates={markedDates}
@@ -52,6 +56,7 @@ export default function CalendarScreen() {
       />
 
       <Text style={commonStyles.subtitle}>Treeni {toFinnishDate(selectedDate)}</Text>
+      {error && <Text style={commonStyles.errorText}>{error}</Text>}
       <FlatList
         data={dayLogs}
         keyExtractor={(item) => item.id.toString()}
@@ -62,3 +67,9 @@ export default function CalendarScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  calendar: {
+    borderRadius: 12,
+  },
+});

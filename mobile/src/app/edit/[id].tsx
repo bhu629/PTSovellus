@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { colors, commonStyles } from "@/theme";
 import AppButton from "@/components/AppButton";
+import { sendData } from "@/api";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-// Yhden kirjauksen muokkaus ja poisto.
-// Kirjauksen nykyiset tiedot tulevat parametreina edelliseltä sivulta.
+// Sivu ei hae kirjausta backendista. Kirjauksen vanhat tiedot tulevat parametreina
+// siltä sivulta, jossa käyttäjä painoi kirjausta (kalenteri tai kirjaussivu).
 export default function EditLogScreen() {
   const params = useLocalSearchParams<{
     id: string;
@@ -23,21 +22,32 @@ export default function EditLogScreen() {
   const [comment, setComment] = useState(params.comment);
 
   async function saveChanges() {
-    await fetch(`${API_URL}/api/logs/${params.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sets: Number(sets),
-        weight: weight === "" ? null : Number(weight),
-        reps: Number(reps),
-        comment: comment,
-      }),
+    if (sets === "" || reps === "") {
+      Alert.alert("Sarjat ja toistot puuttuu");
+      return;
+    }
+
+    const error = await sendData(`/api/logs/${params.id}`, "PUT", {
+      sets: Number(sets),
+      weight: weight === "" ? null : Number(weight), // tyhjä paino = kehonpainoliike
+      reps: Number(reps),
+      comment,
     });
+
+    if (error) {
+      Alert.alert("Tallennus epäonnistui", error);
+      return;
+    }
     router.back(); // takaisin edelliseen näkymään
   }
 
   async function deleteLog() {
-    await fetch(`${API_URL}/api/logs/${params.id}`, { method: "DELETE" });
+    const error = await sendData(`/api/logs/${params.id}`, "DELETE");
+
+    if (error) {
+      Alert.alert("Poisto epäonnistui", error);
+      return;
+    }
     router.back();
   }
 
@@ -46,16 +56,16 @@ export default function EditLogScreen() {
       <Text style={commonStyles.title}>{params.name}</Text>
 
       <Text style={commonStyles.mutedText}>Sarjat</Text>
-      <TextInput style={[commonStyles.input, styles.input]} keyboardType="numeric" value={sets} onChangeText={setSets} />
+      <TextInput style={commonStyles.input} keyboardType="numeric" value={sets} onChangeText={setSets} />
 
       <Text style={commonStyles.mutedText}>Toistot</Text>
-      <TextInput style={[commonStyles.input, styles.input]} keyboardType="numeric" value={reps} onChangeText={setReps} />
+      <TextInput style={commonStyles.input} keyboardType="numeric" value={reps} onChangeText={setReps} />
 
       <Text style={commonStyles.mutedText}>Paino (kg)</Text>
-      <TextInput style={[commonStyles.input, styles.input]} keyboardType="numeric" value={weight} onChangeText={setWeight} />
+      <TextInput style={commonStyles.input} keyboardType="numeric" value={weight} onChangeText={setWeight} />
 
       <Text style={commonStyles.mutedText}>Kommentti</Text>
-      <TextInput style={[commonStyles.input, styles.input]} value={comment} onChangeText={setComment} multiline />
+      <TextInput style={commonStyles.input} value={comment} onChangeText={setComment} multiline />
 
       <AppButton title="Tallenna muutokset" onPress={saveChanges} />
       <AppButton title="Poista kirjaus" onPress={deleteLog} color={colors.danger} />
@@ -65,9 +75,6 @@ export default function EditLogScreen() {
 
 const styles = StyleSheet.create({
   gap: {
-    gap: 12, // väli kaikkien osien välissä
-  },
-  input: {
-    flex: 0, // ei venytetä kenttää koko näytön korkuiseksi
+    gap: 12,
   },
 });

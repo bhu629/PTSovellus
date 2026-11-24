@@ -13,12 +13,12 @@ export function getToday() {
 
 // Lisää päiviä päivämäärään, esim. addDays("2026-11-11", -1) -> "2026-11-10"
 export function addDays(dateString: string, days: number) {
-  const date = new Date(dateString + "T12:00:00"); // keskipäivä, ettei aikavyöhyke siirrä päivää
+  const date = new Date(dateString + "T12:00:00"); // kello 12, ettei aikavyöhyke muuta päivää
   date.setDate(date.getDate() + days);
   return formatDate(date);
 }
 
-// Muuttaa päivämäärän suomalaiseen muotoon näyttämistä varten, esim. "2026-11-11" -> "11.11.2026"
+// Muuttaa päivämäärän suomalaiseen muotoon, esim. "2026-11-11" -> "11.11.2026"
 export function toFinnishDate(dateString: string) {
   const [year, month, day] = dateString.split("-"); // "2026-11-11" -> ["2026", "11", "11"]
   return `${day}.${month}.${year}`;

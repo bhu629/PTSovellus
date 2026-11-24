@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-// Sovelluksen värit yhdessä paikassa. Vaihtamalla arvoja tässä vaihtuu koko sovelluksen ilme.
+// Kaikki sovelluksen värit ovat tässä. Kun muutat värin tässä, se muuttuu koko sovelluksessa.
 export const colors = {
   background: "#121212", // taustaväri
   card: "#1E1E1E", // korttien ja kenttien väri
@@ -32,7 +32,7 @@ export const calendarTheme = {
   textSectionTitleColor: colors.textMuted, // viikonpäivien nimet
 };
 
-// Tyylit, joita käytetään monessa näkymässä
+// Tyylit, joita käytetään monella sivulla
 export const commonStyles = StyleSheet.create({
   container: {
     flex: 1,
@@ -52,7 +52,6 @@ export const commonStyles = StyleSheet.create({
     marginBottom: 12,
   },
   input: {
-    flex: 1,
     backgroundColor: colors.card,
     color: colors.text,
     borderWidth: 1,
@@ -66,5 +65,18 @@ export const commonStyles = StyleSheet.create({
   },
   mutedText: {
     color: colors.textMuted,
+  },
+  // kirjautumis- ja rekisteröintilomake
+  form: {
+    justifyContent: "center",
+    gap: 12,
+  },
+  errorText: {
+    color: colors.danger,
+  },
+  link: {
+    color: colors.primary,
+    textAlign: "center",
+    marginTop: 8,
   },
 });

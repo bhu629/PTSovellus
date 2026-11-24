@@ -67,5 +67,5 @@ export function getProgramById(programId: number): Program | undefined {
 
 export function getAllPrograms(): Program[] {
   const programIds = db.prepare("SELECT id FROM programs ORDER BY id").all() as { id: number }[];
-  return programIds.map(({ id }) => getProgramById(id)!);
+  return programIds.map((row) => getProgramById(row.id) as Program);
 }
